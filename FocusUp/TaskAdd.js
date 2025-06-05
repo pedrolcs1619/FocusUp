@@ -7,29 +7,25 @@ import {
   StyleSheet,
   Alert,
 } from 'react-native';
-
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
+import { useFonts, Jaro_400Regular } from '@expo-google-fonts/jaro';
 
 export default function TaskAdd({ route, navigation }) {
   const { addTask, taskToEdit, updateTask } = route.params || {};
 
   const [title, setTitle] = useState(taskToEdit ? taskToEdit.title : '');
+  const [assunto, setAssunto] = useState(taskToEdit ? taskToEdit.assunto || '' : '');
   const [priority, setPriority] = useState(taskToEdit ? taskToEdit.priority : 'media');
   const [date, setDate] = useState(taskToEdit ? new Date(taskToEdit.date) : null);
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
 
-  const showDatePicker = () => {
-    console.log('Abrindo o calendário');
-    setDatePickerVisibility(true);
-  };
+  const [fontsLoaded] = useFonts({ Jaro_400Regular });
+  if (!fontsLoaded) return <Text>Carregando fontes...</Text>;
 
-  const hideDatePicker = () => {
-    console.log('Fechando o calendário');
-    setDatePickerVisibility(false);
-  };
+  const showDatePicker = () => setDatePickerVisibility(true);
+  const hideDatePicker = () => setDatePickerVisibility(false);
 
   const handleConfirm = (selectedDate) => {
-    console.log('Data selecionada:', selectedDate);
     setDate(selectedDate);
     hideDatePicker();
   };
@@ -47,6 +43,7 @@ export default function TaskAdd({ route, navigation }) {
     const task = {
       id: taskToEdit ? taskToEdit.id : Date.now().toString(),
       title: title.trim(),
+      assunto: assunto.trim(),
       completed: taskToEdit ? taskToEdit.completed : false,
       priority,
       date: date.toISOString(),
@@ -85,12 +82,32 @@ export default function TaskAdd({ route, navigation }) {
 
   return (
     <View style={styles.container}>
+      {/* Logo centralizada */}
+      <View style={styles.header}>
+  <Text style={styles.headerText}>Focus Up</Text>
+</View>
+
+<TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+  <Text style={styles.backButtonText}>← Voltar</Text>
+</TouchableOpacity>
+
+
       <Text style={styles.label}>Título da Tarefa</Text>
       <TextInput
         style={styles.input}
         placeholder="Digite aqui..."
         value={title}
         onChangeText={setTitle}
+      />
+
+      <Text style={styles.label}>Assunto</Text>
+      <TextInput
+        style={[styles.input, { height: 100, textAlignVertical: 'top' }]}
+        placeholder="Digite o assunto..."
+        value={assunto}
+        onChangeText={setAssunto}
+        multiline
+        numberOfLines={4}
       />
 
       <Text style={styles.label}>Prioridade</Text>
@@ -116,7 +133,9 @@ export default function TaskAdd({ route, navigation }) {
       />
 
       <TouchableOpacity style={styles.addButton} onPress={handleAddOrUpdate}>
-        <Text style={styles.addButtonText}>{taskToEdit ? 'Salvar' : 'Adicionar'}</Text>
+        <Text style={styles.addButtonText}>
+          {taskToEdit ? 'Salvar Alterações' : 'Adicionar Tarefa'}
+        </Text>
       </TouchableOpacity>
     </View>
   );
@@ -126,7 +145,30 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
+    paddingTop: 60,
     backgroundColor: '#8BD3DD',
+  },
+  logo: {
+    fontSize: 32,
+    textAlign: 'center',
+    fontFamily: 'Jaro_400Regular',
+    color: '#001858',
+    marginBottom: 10,
+  },
+  backButton: {
+    alignSelf: 'center',
+    backgroundColor: '#001858',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    marginTop: 50, 
+    left:-130,
+    borderRadius: 10,
+    marginBottom: 20,
+  },
+  backButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
   label: {
     fontSize: 18,
@@ -173,4 +215,23 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
   },
+
+ header: {
+  position: 'absolute',
+  top: 0,
+  left: 0,
+  right: 0,
+  backgroundColor: '#001858',
+  paddingVertical: 20,
+  alignItems: 'center',
+  borderBottomWidth: 2,
+  borderBottomColor: '#ccc',
+  zIndex: 999,
+},
+headerText: {
+  color: '#fff',
+  fontSize: 26,
+  fontFamily: 'Jaro_400Regular',
+},
+
 });

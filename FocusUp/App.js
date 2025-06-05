@@ -9,47 +9,52 @@ import {
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { NavigationContainer } from '@react-navigation/native';
 import TaskAdd from './TaskAdd';
+import LoginScreen from './LoginScreen';
+import RegisterScreen from './RegisterScreen';
 import { useFonts, Jaro_400Regular } from '@expo-google-fonts/jaro';
 
 const Stack = createNativeStackNavigator();
 
 export default function App() {
-  const [tasks, setTasks] = useState([
-{
-    id: '1',
-    title: 'Estudar React Native',
-    date: '2025-05-25',
-    priority: 'alta',
-    completed: false,
-  },
-  {
-    id: '2',
-    title: 'Fazer compras no mercado',
-    date: '2025-05-23',
-    priority: 'media',
-    completed: true,
-  },
-  {
-    id: '3',
-    title: 'Enviar relatório do estágio',
-    date: '2025-05-26',
-    priority: 'alta',
-    completed: false,
-  },
-  {
-    id: '4',
-    title: 'Ler 20 páginas do livro',
-    date: '2025-05-22',
-    priority: 'baixa',
-    completed: false,
-  },
+  const [isLoggedIn, setIsLoggedIn] = useState(false); // <-- MOVIDO AQUI
 
+  const [tasks, setTasks] = useState([
+    {
+      id: '1',
+      title: 'Estudar React Native',
+      assunto: 'Estudo para prova',
+      date: '2025-05-25',
+      priority: 'alta',
+      completed: false,
+    },
+    {
+      id: '2',
+      title: 'Fazer compras no mercado',
+      assunto: 'Leite, pão, ovos',
+      date: '2025-05-23',
+      priority: 'media',
+      completed: true,
+    },
+    {
+      id: '3',
+      title: 'Enviar relatório do estágio',
+      assunto: 'Relatório final do mês',
+      date: '2025-05-26',
+      priority: 'alta',
+      completed: false,
+    },
+    {
+      id: '4',
+      title: 'Ler 20 páginas do livro',
+      assunto: 'Capítulo 4 de Design',
+      date: '2025-05-22',
+      priority: 'baixa',
+      completed: false,
+    },
   ]);
 
   const [fontsLoaded] = useFonts({ Jaro_400Regular });
   if (!fontsLoaded) return <Text>Carregando fontes...</Text>;
-
-  
 
   function toggleCompleted(id) {
     setTasks(prev =>
@@ -67,7 +72,6 @@ export default function App() {
     setTasks(prev => [...prev, newTask]);
   }
 
-  // Função para atualizar tarefa existente
   function updateTask(updatedTask) {
     setTasks(prev =>
       prev.map(task => (task.id === updatedTask.id ? updatedTask : task))
@@ -76,18 +80,13 @@ export default function App() {
 
   function getPriorityColor(priority) {
     switch (priority) {
-      case 'alta':
-        return '#f44336'; // vermelho
-      case 'media':
-        return '#ff9800'; // laranja
-      case 'baixa':
-        return '#4caf50'; // verde
-      default:
-        return '#ccc'; // padrão
+      case 'alta': return '#f44336';
+      case 'media': return '#ff9800';
+      case 'baixa': return '#4caf50';
+      default: return '#ccc';
     }
   }
 
-  // Função corrigida para formatar datas
   function formatDate(dateString) {
     if (!dateString) return 'Data inválida';
     const date = new Date(dateString);
@@ -137,6 +136,12 @@ export default function App() {
                   </Text>
                 </View>
 
+                {item.assunto && (
+                  <Text style={styles.taskAssunto}>
+                    📝 {item.assunto}
+                  </Text>
+                )}
+
                 <Text style={styles.taskDate}>
                   📅 {formatDate(item.date)}
                 </Text>
@@ -174,18 +179,41 @@ export default function App() {
     );
   }
 
-  return (
-    <NavigationContainer>
+  // Agora recebe props
+  function AuthFlow({ isLoggedIn, setIsLoggedIn }) {
+    function onLoginSuccess() {
+      setIsLoggedIn(true);
+    }
+
+    if (!isLoggedIn) {
+      return (
+        <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName="Login">
+          <Stack.Screen name="Login">
+            {props => <LoginScreen {...props} onLoginSuccess={onLoginSuccess} />}
+          </Stack.Screen>
+          <Stack.Screen name="Register" component={RegisterScreen} />
+        </Stack.Navigator>
+      );
+    }
+
+    return (
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Home" component={HomeScreen} />
         <Stack.Screen name="TaskAdd" component={TaskAdd} />
       </Stack.Navigator>
+    );
+  }
+
+  return (
+    <NavigationContainer>
+      <AuthFlow isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
     </NavigationContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  container
+: {
     flex: 1,
     paddingTop: 80,
     paddingHorizontal: 20,
@@ -246,6 +274,13 @@ const styles = StyleSheet.create({
     color: '#001858',
     flexShrink: 1,
   },
+  taskAssunto: {
+    fontSize: 16,
+    fontFamily: 'Jaro_400Regular',
+    color: '#333',
+    marginLeft: 22,
+    marginTop: 4,
+  },
   taskTextCompleted: {
     textDecorationLine: 'line-through',
     color: '#555',
@@ -255,6 +290,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Jaro_400Regular',
     color: '#555',
     marginLeft: 22,
+    marginTop: 4,
   },
   deleteButton: {
     marginLeft: 15,
@@ -301,7 +337,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     justifyContent: 'center',
     alignItems: 'center',
-    alignSelf: 'stretch',
+    alignSelf: 'stretch', // Agora o botão tem a mesma altura do botão de excluir
   },
   editButtonText: {
     color: '#fff',
